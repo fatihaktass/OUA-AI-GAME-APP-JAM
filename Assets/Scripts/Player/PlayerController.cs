@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float moveSpeed;
     [SerializeField] float crouchHeight;
     [SerializeField] float jumpForce;
+    [SerializeField] float playerHealth = 100f;
     [SerializeField] float gravityForce;
     [SerializeField] bool isGrounded;
     [SerializeField] Transform groundChecker;
@@ -19,10 +20,12 @@ public class PlayerController : MonoBehaviour
     Vector3 gravityV3;
 
     CharacterController charCont;
+    GameManager gameManager;
 
     private void Start()
     {
         charCont = GetComponent<CharacterController>();
+        gameManager = FindAnyObjectByType<GameManager>();
         playerAnimator = player.GetComponent<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -31,6 +34,11 @@ public class PlayerController : MonoBehaviour
     {
         PlayerMovements();
         Gravity();
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            PlayerTakenDamage(50);
+        }
     }
 
     void PlayerMovements()
@@ -65,7 +73,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                charCont.height = 1.8f;
+                charCont.height = 1.6f;
             }
         }
 
@@ -74,11 +82,11 @@ public class PlayerController : MonoBehaviour
         {
             if (horizontalMovement != 0 || verticalMovement != 0)
             {
-                moveSpeed = 5f;
+                moveSpeed = 3f;
                 playerAnimator.SetFloat("IsRunning", 0);
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    moveSpeed = 8f;
+                    moveSpeed = 5f;
                     playerAnimator.SetFloat("IsRunning", 1);
                 }
             }
@@ -100,6 +108,18 @@ public class PlayerController : MonoBehaviour
         {
             gravityV3.y = -3f;
             playerAnimator.SetTrigger("FinishedJump");
+        }
+    }
+
+    public void PlayerTakenDamage(float amountOfDamage)
+    {
+        playerHealth -= amountOfDamage;
+
+        if (playerHealth <= 0f)
+        {
+            playerHealth = 0f;
+            playerAnimator.SetTrigger("Dead");
+            gameManager.DeathPanel();
         }
     }
 }
