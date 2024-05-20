@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool isGrounded;
     [SerializeField] Transform groundChecker;
     [SerializeField] bool isCrouch;
+    [SerializeField] bool canMove = true;
 
     [SerializeField] GameObject player;
     [SerializeField] Animator playerAnimator;
@@ -27,12 +28,15 @@ public class PlayerController : MonoBehaviour
         charCont = GetComponent<CharacterController>();
         gameManager = FindAnyObjectByType<GameManager>();
         playerAnimator = player.GetComponent<Animator>();
-        Cursor.lockState = CursorLockMode.Locked;
+        ChangeMovePermit(true);
     }
 
     private void Update()
     {
-        PlayerMovements();
+        if (canMove)
+        {
+            PlayerMovements();
+        }
         Gravity();
 
         if (Input.GetKeyDown(KeyCode.X))
@@ -121,5 +125,10 @@ public class PlayerController : MonoBehaviour
             playerAnimator.SetTrigger("Dead");
             gameManager.DeathPanel();
         }
+    }
+
+    public void ChangeMovePermit(bool isCanMove)
+    {
+        canMove = isCanMove;
     }
 }
