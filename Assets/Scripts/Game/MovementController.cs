@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class MovementController : MonoBehaviour
 {
+
     private void OnEnable()
     {
         FindAnyObjectByType<PlayerController>().ChangeMovePermit(false);

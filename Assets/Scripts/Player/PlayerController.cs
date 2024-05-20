@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -10,7 +11,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float gravityForce;
     [SerializeField] bool isGrounded;
     [SerializeField] Transform groundChecker;
+    [SerializeField] Slider healthSlider;
     [SerializeField] bool isCrouch;
+    [SerializeField] bool isAttacking;
     [SerializeField] bool canMove = true;
 
     [SerializeField] GameObject player;
@@ -18,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     float horizontalMovement;
     float verticalMovement;
+    static bool firstTime;
     Vector3 gravityV3;
 
     CharacterController charCont;
@@ -29,10 +33,15 @@ public class PlayerController : MonoBehaviour
         gameManager = FindAnyObjectByType<GameManager>();
         playerAnimator = player.GetComponent<Animator>();
         ChangeMovePermit(true);
+        if (!firstTime)
+        {
+            gameManager.ResetGame();
+        }
     }
 
     private void Update()
     {
+        healthSlider.value = playerHealth;
         if (canMove)
         {
             PlayerMovements();
@@ -65,22 +74,6 @@ public class PlayerController : MonoBehaviour
             playerAnimator.SetTrigger("Jumping");
         }
 
-        //Crouch ----------------------------------------------------------------------------------------------------------- //
-        if (Input.GetKeyDown(KeyCode.C) && isGrounded)
-        {
-            isCrouch = !isCrouch;
-
-            if (isCrouch)
-            {
-                charCont.height = crouchHeight;
-                moveSpeed = 2f;
-            }
-            else
-            {
-                charCont.height = 1.6f;
-            }
-        }
-
         //Speed ------------------------------------------------------------------------------------------------------------- //
         if (isGrounded && !isCrouch)
         {
@@ -99,6 +92,20 @@ public class PlayerController : MonoBehaviour
                 moveSpeed = 0f;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0) && !isAttacking)
+        {
+            isAttacking = true;
+            playerAnimator.SetBool("isAttacking", true);
+            gameManager.ShootingRay();
+            Invoke(nameof(AttackResetter), 0.51f);
+        }
+    }
+
+    void AttackResetter()
+    {
+        playerAnimator.SetBool("isAttacking", false);
+        isAttacking = false;
     }
 
     void Gravity()
@@ -122,8 +129,9 @@ public class PlayerController : MonoBehaviour
         if (playerHealth <= 0f)
         {
             playerHealth = 0f;
-            playerAnimator.SetTrigger("Dead");
             gameManager.DeathPanel();
+            charCont.height = 0f;
+            healthSlider.gameObject.SetActive(false);
         }
     }
 
@@ -131,4 +139,18 @@ public class PlayerController : MonoBehaviour
     {
         canMove = isCanMove;
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("StationCapsule"))
+        {
+            gameManager.Scene1Completed();
+            firstTime = true;
+        }
+        if (other.CompareTag("Portal"))
+        {
+            gameManager.Scene2Completed();
+        }
+    }
+
 }
